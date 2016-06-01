@@ -9,8 +9,6 @@ namespace Tests
     [TestClass]
     public class UnitTest1
     {
-        public TextWriter Dumper { get { return LINQPad.Util.CreateXhtmlWriter(); } }
-
         [TestMethod]
         public void Sum_All_Scores_Remove_Three_Lowest_Test()
         {
