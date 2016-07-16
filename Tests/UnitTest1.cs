@@ -103,12 +103,23 @@ namespace Tests
             // 10 + 5 = 15
             Console.WriteLine(result);
 
-            result = array.Aggregate((a, b) => b * a);
+            int result1 = array.Aggregate((a, b) => b * a);
             // 1 * 2 = 2
             // 2 * 3 = 6
             // 6 * 4 = 24
             // 24 * 5 = 120
-            Console.WriteLine(result);
+            Console.WriteLine(result1);
+
+            string sentence = "the quick brown fox jumps over the lazy dog";
+
+            // Split the string into individual words.
+            string[] words = sentence.Split(' ');
+
+            // Prepend each word to the beginning of the 
+            // new sentence to reverse the word order.
+            string result3 = words.Aggregate((workingSentence, next) => next + " " + workingSentence);
+
+            Console.WriteLine(result3);
         }
 
         [TestMethod]
