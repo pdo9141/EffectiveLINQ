@@ -3,8 +3,9 @@ using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 using System.Collections.Generic;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Text.RegularExpressions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Globalization;
 
 namespace Tests
 {
@@ -207,6 +208,119 @@ namespace Tests
             public decimal Amount { get; set; }
             public string CustomerId { get; set; }
             public string Status { get; set; }
+        }
+
+        [TestMethod]
+        public void Group_By_Age_From_Birthdate_Test()
+        {
+            string namesAndAges = "Phillip Do, 10/10/1978; Mony Taing, 11/10/1979; Mason Do, 03/23/2009; Emma Do, 11/09/2010";
+            var result = namesAndAges
+                .Split(';')
+                .Select(n => n.Split(','))
+                .Select(n => new { Name = n[0].Trim(), DateOfBirth = DateTime.ParseExact(n[1].Trim(), "M/d/yyyy", CultureInfo.InvariantCulture) })
+                .OrderByDescending(n => n.DateOfBirth)
+                .Select(n => 
+                {
+                    DateTime today = DateTime.Today;
+                    int age = today.Year - n.DateOfBirth.Year;
+                    if (n.DateOfBirth > today.AddYears(-age)) age--;
+                    return new { Name = n.Name, Age = age };
+                });
+        }
+
+        [TestMethod]
+        public void Group_By_Age_From_Birthdate_Clean_Test()
+        {
+            Func<string, DateTime> parseDob = dob => DateTime.ParseExact(dob.Trim(), "M/d/yyyy", CultureInfo.InvariantCulture);
+            Func<DateTime, int> getAge = dateOfBirth => {
+                DateTime today = DateTime.Today;
+                int age = today.Year - dateOfBirth.Year;
+                if (dateOfBirth > today.AddYears(-age)) age--;
+                return age;
+            };
+
+            string namesAndAges = "Phillip Do, 10/10/1978; Mony Taing, 11/10/1979; Mason Do, 03/23/2009; Emma Do, 11/09/2010";
+            var result = namesAndAges
+                .Split(';')
+                .Select(n => n.Split(','))
+                .Select(n => new { Name = n[0].Trim(), DateOfBirth = parseDob(n[1].Trim()) })
+                .OrderByDescending(n => n.DateOfBirth)
+                .Select(n => new { Name = n.Name, Age = getAge(n.DateOfBirth) });
+        }
+
+        private DateTime ParseDob(string dob)
+        {
+            return DateTime.ParseExact(dob.Trim(), "M/d/yyyy", CultureInfo.InvariantCulture);
+        }
+
+        private int GetAge(DateTime dateOfBirth)
+        {
+            DateTime today = DateTime.Today;
+            int age = today.Year - dateOfBirth.Year;
+            if (dateOfBirth > today.AddYears(-age)) age--;
+            return age;
+        }
+
+        [TestMethod]
+        public void Chess_Bishop_Move_Test()
+        {
+            // this will not be a very high performing test
+            // we start with a Bishop on c6
+            // what positions can it reach in one move?
+            // output should include b5, a4, b7, a8
+            var result1 = Enumerable.Range('a', 8)
+                .SelectMany(x => Enumerable.Range('1', 8),
+                    (f, r) => new { File = (char)f, Rank = (char)r })
+                .Where(x => Math.Abs(x.File - 'c') == Math.Abs(x.Rank - '6'))
+                .Where(x => x.File != 'c')
+                .Select(x => String.Format("{0}{1}", x.File, x.Rank));
+
+            var result2 =
+                from row in Enumerable.Range('a', 8)
+                from col in Enumerable.Range('1', 8)
+                let dx = Math.Abs(row - 'c')
+                let dy = Math.Abs(col - '6')
+                where dx == dy && dx != 0
+                select String.Format("{0}{1}", (char)row, (char)col);
+        }
+
+        [TestMethod]
+        public void Chess_Bishop_Move_Clean_Test()
+        {
+            var result = GetBoardPositions().Where(p => BishopCanMoveTo(p, "c6"));
+        }
+
+        private IEnumerable<string> GetBoardPositions()
+        {
+            return Enumerable.Range('a', 8).SelectMany(
+                x => Enumerable.Range('1', 8), (f, r) => 
+                    String.Format("{0}{1}", (char)f, (char)r));
+        }
+
+        private bool BishopCanMoveTo(string startPos, string targetPos)
+        {
+            var dx = Math.Abs(startPos[0] - targetPos[0]);
+            var dy = Math.Abs(startPos[1] - targetPos[1]);
+            return dx == dy && dx != 0;
+        }
+
+        [TestMethod]
+        public void Title_Of_Longest_Book_Test()
+        {
+            var books = new[]
+            {
+                new { Author = "Robert Martin", Title = "Clean Code", Pages = 464 },
+                new { Author = "Oliver Sturm", Title = "Functional Programming in C#", Pages = 270 },
+                new { Author = "Martin Fowler", Title = "Patterns of Enterprise Application Architecture", Pages = 533 },
+                new { Author = "Bill Wagner", Title = "Effective C#", Pages = 328 }
+            };
+
+            var mostPages = books.Max(x => x.Pages);
+            var result1 = books.First(b => b.Pages == mostPages);
+            var result2 = books.OrderByDescending(b => b.Pages).First();
+
+            // best performance
+            var result3 = books.Aggregate((agg, next) => next.Pages > agg.Pages ? next : agg);     
         }
     }
 }
