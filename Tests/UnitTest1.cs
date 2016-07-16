@@ -29,6 +29,88 @@ namespace Tests
     [TestClass]
     public class UnitTest1
     {
+        public class PetOwner
+        {
+            public string Name { get; set; }
+
+            public List<string> Pets { get; set; }
+        }
+
+        [TestMethod]
+        public void SelectMany_Test()
+        {
+            string[] array = { "dot", "net", "perls" };
+
+            // Convert each string in the string array to a character array.
+            // ... Then combine those character arrays into one.
+            var result1 = array.SelectMany(element => element.ToCharArray());
+
+            // Display letters.
+            foreach (char letter in result1)
+                Console.WriteLine(letter);
+
+            // use like cross join in SQL
+            List<int> number = new List<int>() { 10, 20 };
+            List<string> animals = new List<string>() { "cat", "dog", "donkey" };
+            
+            var result2 = number.SelectMany(num => animals, (n, a) => new { n, a });
+            foreach (var resultItem in result2)
+                Console.WriteLine("{0}{1}", resultItem.n, resultItem.a);
+        }
+
+        [TestMethod]
+        public void Select_SelectMany_Difference_Test()
+        {
+            // combine multiple collections into one
+            PetOwner[] petOwners =
+                   { new PetOwner { Name="Higa, Sidney",
+                          Pets = new List<string>{ "Scruffy", "Sam" } },
+                      new PetOwner { Name="Ashkenazi, Ronen",
+                          Pets = new List<string>{ "Walker", "Sugar" } },
+                      new PetOwner { Name="Price, Vernette",
+                          Pets = new List<string>{ "Scratches", "Diesel" } } };
+
+            // use Select
+            IEnumerable<List<String>> result1 = petOwners.Select(petOwner => petOwner.Pets);
+            
+            // Notice that two foreach loops are required to 
+            // iterate through the results
+            // because the query returns a collection of arrays.
+            foreach (List<String> petList in result1)
+                foreach (string pet in petList)
+                    Console.WriteLine(pet);
+            
+            Console.WriteLine();
+
+            // use SelectMany
+            IEnumerable<string> result2 = petOwners.SelectMany(petOwner => petOwner.Pets);
+
+            // Only one foreach loop is required to iterate 
+            // through the results since it is a
+            // one-dimensional collection.
+            foreach (string pet in result2)
+                Console.WriteLine(pet);
+        }
+
+        [TestMethod]
+        public void Aggregate_Test()
+        {
+            int[] array = { 1, 2, 3, 4, 5 };
+            int result = array.Aggregate((a, b) => b + a);
+            // 1 + 2 = 3
+            // 3 + 3 = 6
+            // 6 + 4 = 10
+            // 10 + 5 = 15
+            Console.WriteLine(result);
+
+            result = array.Aggregate((a, b) => b * a);
+            // 1 * 2 = 2
+            // 2 * 3 = 6
+            // 6 * 4 = 24
+            // 24 * 5 = 120
+            Console.WriteLine(result);
+        }
+
         [TestMethod]
         public void How_Long_Entire_Album_Is_Test()
         {
