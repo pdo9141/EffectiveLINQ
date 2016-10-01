@@ -25,9 +25,27 @@ namespace Tests
         }
     }
 
+    public enum Colors
+    {
+        Black = 1,
+        Blue = 2,
+        Green = 3
+    }
+
     [TestClass]
     public class UnitTest1
     {
+        [TestMethod]
+        public void Zip_Test()
+        {
+            var names = Enum.GetNames(typeof(Colors));
+            var values = Enum.GetValues(typeof(Colors)).Cast<int>();
+
+            var items = names.Zip(values, (name, value) =>
+                new KeyValuePair<string, int>(name, value)
+            );
+        }
+
         [TestMethod]
         public void How_Long_Entire_Album_Is_Test()
         {
