@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Globalization;
+using System.ComponentModel.DataAnnotations;
 
 namespace Tests
 {
@@ -26,16 +27,47 @@ namespace Tests
         }
     }
 
-    public enum Colors
+    public enum Genre
     {
-        Black = 1,
-        Blue = 2,
-        Green = 3
+        [Display(Name = "Non Fiction")]
+        NonFiction = 1,
+        Romance = 2,
+        Action = 3,
+        [Display(Name = "Science Fiction")]
+        ScienceFiction = 4
     }
 
     [TestClass]
     public class UnitTest1
     {
+        [TestMethod]
+        public void Zip_Test()
+        {
+            var enumType = typeof(Genre);
+            var names = Enum.GetNames(enumType);
+            var values = Enum.GetValues(enumType).Cast<int>();
+
+            var items = names.Zip(values, (name, value) =>
+                new KeyValuePair<string, int>(GetName(enumType, name), value)
+            );
+        }
+
+        private string GetName(Type enumType, string name)
+        {
+            var result = name;
+
+            var attribute = enumType
+                .GetField(name)
+                .GetCustomAttributes(inherit: false)
+                .OfType<DisplayAttribute>()
+                .FirstOrDefault();
+
+            if (attribute != null)
+                result = attribute.GetName();
+            
+            return result;
+        }
+
         public class PetOwner
         {
             public string Name { get; set; }
@@ -128,18 +160,7 @@ namespace Tests
 
             Console.WriteLine(result3);
         }
-
-        [TestMethod]
-        public void Zip_Test()
-        {
-            var names = Enum.GetNames(typeof(Colors));
-            var values = Enum.GetValues(typeof(Colors)).Cast<int>();
-
-            var items = names.Zip(values, (name, value) =>
-                new KeyValuePair<string, int>(name, value)
-            );
-        }
-
+        
         [TestMethod]
         public void How_Long_Entire_Album_Is_Test()
         {
