@@ -37,12 +37,70 @@ namespace Tests
         ScienceFiction = 4
     }
 
+    class A
+    {
+        public void Y()
+        {
+            Console.WriteLine("A.Y");
+        }
+    }
+
+    class B : A
+    {
+    }
+
     [TestClass]
     public class UnitTest1
     {
         [TestMethod]
+        public void Cast_Test()
+        {
+            //The Cast method casts every element. It is an extension method in the System.Linq namespace.It casts each element to the specified type.And the result is a collection of the desired type.
+            B[] values = new B[3];
+            values[0] = new B();
+            values[1] = new B();
+            values[2] = new B();
+
+            // Cast all objects to a base type.
+            var result = values.Cast<A>();
+            foreach (A value in result)
+            {
+                value.Y();
+            }
+
+            //OfType - return only the elements of type x.
+            //Cast - will try to cast all the elements into type x. if some of them are not from this type you will get InvalidCastException
+            //object[] objs = new object[] { "12345", 12 };
+            //objs.Cast<string>().ToArray(); //throws InvalidCastException
+            //objs.OfType<string>().ToArray(); //return { "12345" }
+        }
+
+        [TestMethod]
+        public void Let_Test()
+        {
+            // Use let as alias shortcut for rest of query
+            PetOwner[] petOwners = {
+                new PetOwner {
+                    Name ="Mason Do",
+                    Pets = new List<string>{ "Scruffy", "Sam" } },
+                new PetOwner {
+                    Name ="Emma Do",
+                    Pets = new List<string>{ "Walker", "Sugar" } },
+                new PetOwner {
+                    Name ="Mony Taing",
+                    Pets = new List<string>{ "Scratches", "Diesel" } } };
+
+            IEnumerable<string> petNames =
+                (from po in petOwners
+                 let ownerName = po.Name
+                 where ownerName.Contains("Emma") && ownerName.Contains("Do")
+                 select po.Pets).FirstOrDefault();
+        }
+        
+        [TestMethod]
         public void Zip_Test()
         {
+            // The Zip extension method acts upon two collections. It processes each element in two series together. With a Func instance, we use Zip to handle elements from two C# collections in parallel.
             var enumType = typeof(Genre);
             var names = Enum.GetNames(enumType);
             var values = Enum.GetValues(enumType).Cast<int>();
@@ -50,6 +108,17 @@ namespace Tests
             var items = names.Zip(values, (name, value) =>
                 new KeyValuePair<string, int>(GetName(enumType, name), value)
             );
+
+            // Two source arrays.
+            var array1 = new int[] { 1, 2, 3, 4, 5 };
+            var array2 = new int[] { 6, 7, 8, 9, 10 };
+
+            // Add elements at each position together.
+            var zip = array1.Zip(array2, (a, b) => (a + b));
+
+            // Look at results.
+            foreach (var value in zip)
+                Console.WriteLine(value);            
         }
 
         private string GetName(Type enumType, string name)
@@ -78,6 +147,7 @@ namespace Tests
         [TestMethod]
         public void SelectMany_Test()
         {
+            //SelectMany collapses many elements into a single collection. The resulting collection is of another element type. We specify how an element is transformed into a collection of other elements.
             string[] array = { "dot", "net", "perls" };
 
             // Convert each string in the string array to a character array.
@@ -134,6 +204,8 @@ namespace Tests
         [TestMethod]
         public void Aggregate_Test()
         {
+            //Aggregate applies a method to each element. It applies a function to each successive element. 
+            //With this extension method, we act upon the aggregate of all previous elements. This makes certain methods, such as sum, possible.
             int[] array = { 1, 2, 3, 4, 5 };
             int result = array.Aggregate((a, b) => b + a);
             // 1 + 2 = 3
@@ -453,6 +525,78 @@ namespace Tests
 
             // best performance
             var result3 = books.Aggregate((agg, next) => next.Pages > agg.Pages ? next : agg);     
+        }
+
+        [TestMethod]
+        public void Test_Test()
+        {
+            // Write query using let with PetOwners
+            PetOwner[] petOwners = {
+                new PetOwner {
+                    Name ="Mason Do",
+                    Pets = new List<string>{ "Scruffy", "Sam" } },
+                new PetOwner {
+                    Name ="Emma Do",
+                    Pets = new List<string>{ "Walker", "Sugar" } },
+                new PetOwner {
+                    Name ="Mony Taing",
+                    Pets = new List<string>{ "Scratches", "Diesel" } } };
+
+            IEnumerable<string> emmaPets =
+                (from po in petOwners
+                 let ownerName = po.Name
+                 where ownerName.Contains("Emma") && ownerName.Contains("Do")
+                 select po.Pets).FirstOrDefault();
+
+            // Write query using Zip adding array1 and array2 values together, remember to use Func            
+            var array1 = new int[] { 1, 2, 3, 4, 5 };
+            var array2 = new int[] { 6, 7, 8, 9, 10 };
+            var zipped = array1.Zip(array2, (a1, a2) => (a1 + a2));
+            
+            // Write query using SelecMany in results1 array, all characters into one array of characters
+            string[] array = { "dot", "net", "perls" };
+            var allChars = array.SelectMany(w => w.ToCharArray());
+
+            // Write query using SelecMany like cross-join, remember to use Func
+            List<int> number = new List<int>() { 10, 20 };
+            List<string> animals = new List<string>() { "cat", "dog", "donkey" };
+            var crossJoined = number.SelectMany(n => animals, (n, a) => new { Id = n, Name = a });
+
+            // Write query using SelecMany getting all pets from all petowners
+            var allPets = petOwners.SelectMany(po => po.Pets);
+
+            // Use Aggregate and prepend each word to the beginning of the new sentence to reverse the word order.
+            string sentence = "the quick brown fox jumps over the lazy dog";
+            string[] words = sentence.Split(' ');
+            var output = words.Aggregate((r, item) => item + " " + r);
+
+            // Give me a dictionary of key Id and value List<Order>
+            var orders = new List<Order>()
+            {
+                new Order { Id = 123, Amount = 29.95m, CustomerId = "Mark", Status = "Delivered" },
+                new Order { Id = 456, Amount = 45.00m, CustomerId = "Steph", Status = "Refunded" },
+                new Order { Id = 768, Amount = 32.50m, CustomerId = "Claire", Status = "Delivered" },
+                new Order { Id = 222, Amount = 300.00m, CustomerId = "Mark", Status = "Delivered" },
+                new Order { Id = 333, Amount = 465.00m, CustomerId = "Steph", Status = "Awaiting Stock" },
+            };
+
+            Dictionary<int, Order> newDic = orders.ToDictionary(o => o.Id, o => o);
+
+            // Give me a dictionary of key CustomerId and value List<Order>  
+            Dictionary<string, List<Order>> groupedByCustomerId = orders.GroupBy(o => o.CustomerId)
+                .ToDictionary(r => r.Key, r => r.ToList());
+
+            // Use Cast to convert B to A
+            B[] values = new B[3];
+            values[0] = new B();
+            values[1] = new B();
+            values[2] = new B();
+
+            var aResult = values.Cast<A>();
+            foreach (A a in aResult)
+            {
+                a.Y();
+            }
         }
     }
 }
