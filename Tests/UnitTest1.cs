@@ -144,6 +144,15 @@ namespace Tests
             public List<string> Pets { get; set; }
         }
 
+        public class Person
+        {
+            public string Name { get; set; }
+
+            public string Team { get; set; }
+
+            public int Age { get; set; }
+        }
+
         [TestMethod]
         public void SelectMany_Test()
         {
@@ -525,6 +534,24 @@ namespace Tests
 
             // best performance
             var result3 = books.Aggregate((agg, next) => next.Pages > agg.Pages ? next : agg);     
+        }
+
+        [TestMethod]
+        public void Max_Test()
+        {
+            var persons = new List<Person>
+            {
+                new Person { Name = "Phillip Do", Team = "Adults", Age = 38 },
+                new Person { Name = "Mason Do", Team = "Kids", Age = 9 },
+                new Person { Name = "Emma Do", Team = "Kids", Age = 6 },
+                new Person { Name = "Mony Do", Team = "Adults", Age = 37 }
+            };
+
+            var person = persons.OrderByDescending(p => p.Age).FirstOrDefault();
+
+            var teamAndMaxAge = from p in persons
+                                group p by p.Team into g
+                                select new { Team = g.Key, MaxAge = g.Max(x => x.Age) };
         }
 
         [TestMethod]
